@@ -14,21 +14,33 @@ describe "Map" do
 
 
   describe "find_all_routes" do
-    it "should return false if there are no connections" do
+    xit "should return false if there are no connections" do
       Map.make_connection("austin","houston", 100)
       Map.make_connection("houston", "dallas", 100)
       Map.make_connection("boston", "cleveland", 3000)
       expect(Map.all_routes("cleveland", "austin")).to eq(false)
     end
 
-    it "should return 1 route if available" do
+    xit "can return one really short route" do
+      Map.make_connection("austin","houston", 100)
+      expect(Map.all_routes("austin", "houston")).to eq([["austin", "houston"]])
+    end
+
+
+    it "can return one short route" do
+      Map.make_connection("austin","houston", 100)
+      Map.make_connection("houston", "dallas", 100)
+      expect(Map.all_routes("austin", "dallas")).to eq([])
+    end
+
+
+
+    xit "should return 1 route if available" do
       Map.make_connection("austin","houston", 100)
       Map.make_connection("houston", "dallas", 100)
       Map.make_connection("boston", "dallas", 1150)
       Map.make_connection("boston", "cleveland", 3000)
       expect(Map.all_routes("cleveland", "austin")).to eq([])
-
-
     end
   end
 end

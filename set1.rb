@@ -1,3 +1,4 @@
+require 'pry-debugger'
 module Map
 
   @@connections = []
@@ -25,7 +26,7 @@ module Map
     visited << origin
 
     #now filter for roads containing origin city
-    roads = roads.select { |x| x.include?(origin) }
+    roads.delete_if { |x| x.include?(origin) == false }
 
     #Now roads contains all untravelled roads out of town
 
@@ -33,7 +34,7 @@ module Map
     if roads.size == 0
       return false
     end
-
+    binding.pry
     # otherwise search each road
     roads.each do |x|
 
