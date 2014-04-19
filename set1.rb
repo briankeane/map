@@ -5,6 +5,7 @@ module Map
 
   def self.clear_connections
     @@connections = []
+    @@flag = true
   end
 
   def self.make_connection(city1, city2, miles)
@@ -19,8 +20,9 @@ module Map
 
     solutions = []
 
-    # filter out roads already visited
+    # copy roads and visited arrays so they're separate for each layer
     roads = @@connections.dup
+    visited = visited.dup
 
     visited.each do |v|
       roads.delete_if { |x| x.include?(v) }
@@ -38,15 +40,14 @@ module Map
     if roads.size == 0
       return false
     end
-    binding.pry
     # otherwise search each road
     roads.each do |x|
 
       #if the next step includes the destination
       if x.include?(destination)
         #Store the path in the solutions array
-        visited << destination
-        solutions << visited
+        # visited << destination  #thinking this is fucking it up
+        solutions << (visited.dup << destination)
       #otherwise, send out another searcher
       else
         # set next city
@@ -55,6 +56,7 @@ module Map
         else
           next_city = x[0]
         end
+
 
         result = self.all_routes(next_city, destination, visited)
 
@@ -70,4 +72,37 @@ module Map
       return solutions
     end
   end
+
+  def self.shortest_route(origin, destination)
+    all_routes = self.all_routes(origin, destination)
+    if all_routes == false
+      return false
+    else
+
+      # map array with the total mileages
+      distances = all_routes.map do |route|
+
+        sum = 0
+
+        # simulate a javascript for loop
+        limit = (route.size - 2)
+        for i in (0..limit)
+
+          distance_array = []
+          distance_array = @@connections.find { |c| (c[0] == route[i] || c[0] == route[i+1]) &&
+                                                (c[1] == route[i] || c[1] == route[i+1]) }
+
+          sum += distance_array[2]
+        end
+
+        sum
+      end
+
+      index = distances.find_index(distances.min)
+      return all_routes[index]
+    end
+  end
+
+
+
 end
