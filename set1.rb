@@ -3,6 +3,10 @@ module Map
 
   @@connections = []
 
+  def self.clear_connections
+    @@connections = []
+  end
+
   def self.make_connection(city1, city2, miles)
     @@connections << [city1, city2, miles]
   end
