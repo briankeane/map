@@ -54,7 +54,7 @@ module Map
         result = self.all_routes(next_city, destination, visited)
 
         if result != false
-          solutions << result
+          solutions.concat(result)
         end
       end
     end
