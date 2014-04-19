@@ -16,7 +16,7 @@ module Map
     solutions = []
 
     # filter out roads already visited
-    roads = @@connections
+    roads = @@connections.dup
 
     visited.each do |v|
       roads.delete_if { |x| x.include?(v) }
