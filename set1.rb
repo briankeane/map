@@ -1,108 +1,123 @@
 require 'pry-debugger'
 module Map
 
-  @@connections = []
+  class Graph
 
-  def self.clear_connections
-    @@connections = []
-    @@flag = true
-  end
+    attr_reader :nodes
 
-  def self.make_connection(city1, city2, miles)
-    @@connections << [city1, city2, miles]
-  end
-
-  def self.connections
-    @@connections
-  end
-
-  def self.all_routes(origin, destination, visited=[])
-
-    solutions = []
-
-    # copy roads and visited arrays so they're separate for each layer
-    roads = @@connections.dup
-    visited = visited.dup
-
-    visited.each do |v|
-      roads.delete_if { |x| x.include?(v) }
+    def initialize
+      @nodes = {}
     end
 
-    ## add the current city to visited list
-    visited << origin
-
-    #now filter for roads containing origin city
-    roads.delete_if { |x| x.include?(origin) == false }
-
-    #Now roads contains all untravelled roads out of town
-
-    # if there are no roads left, return false
-    if roads.size == 0
-      return false
+    def clear
+      @nodes = {}
     end
-    # otherwise search each road
-    roads.each do |x|
 
-      #if the next step includes the destination
-      if x.include?(destination)
-        #Store the path in the solutions array
-        # visited << destination  #thinking this is fucking it up
-        solutions << (visited.dup << destination)
-      #otherwise, send out another searcher
-      else
-        # set next city
-        if x[0] == origin
-          next_city = x[1]
+    def addNode(value)
+      @nodes[value] = Node.new(value)
+    end
+
+    def removeNode(value)
+      @nodes.delete(value)
+    end
+
+    def addEdge(node_value_1, node_value_2, cost)
+      @nodes[node_value_1].add_edge(node_value_2, cost)
+      @nodes[node_value_2].add_edge(node_value_1, cost)
+    end
+
+    def removeEdge(node_value_1, node_value_2)
+      @nodes[node_value1].delete_edge(node_value_2)
+      @nodes[node_value2].delete_edge(node_value_1)
+    end
+
+    def findAllPaths(origin, destination, visited = [])
+
+      solutions = []
+
+      #grab the actual objects
+      origin = @nodes[origin]
+      destination = @nodes[destination]
+
+      roads = origin.edges.dup
+      visited = visited.dup
+
+      # delete visited roads
+      visited.each do |v|
+        roads.delete(v)
+      end
+
+      # add current city to visited list
+      visited << origin.value
+
+      # if there are no roads left, return false
+      if roads.size == 0
+        return false
+      end
+
+      #otherwise, search each road
+      roads.each do |city_string, distance|
+        if city_string == destination.value
+          solutions << (visited.dup << destination.value)
         else
-          next_city = x[0]
+          next_city_string = city_string
+          result = self.findAllPaths(next_city_string, destination.value, visited)
+
+          if result != false
+            solutions.concat(result)
+          end
         end
+      end
 
-
-        result = self.all_routes(next_city, destination, visited)
-
-        if result != false
-          solutions.concat(result)
-        end
+      if solutions.size == 0
+        return false
+      else
+        return solutions
       end
     end
 
-    if solutions.size == 0
-      return false
-    else
-      return solutions
-    end
-  end
+    def find_shortest_route(origin, destination)
+      all_routes = self.findAllPaths(origin, destination)
 
-  def self.shortest_route(origin, destination)
-    all_routes = self.all_routes(origin, destination)
-    if all_routes == false
-      return false
-    else
+      if all_routes == false
+        return false
+      else
 
-      # map array with the total mileages
-      distances = all_routes.map do |route|
+        distances = all_routes.map do |route|
 
-        sum = 0
+          sum = 0
 
-        # simulate a javascript for loop
-        limit = (route.size - 2)
-        for i in (0..limit)
+          limit = (route.size - 2)
 
-          distance_array = []
-          distance_array = @@connections.find { |c| (c[0] == route[i] || c[0] == route[i+1]) &&
-                                                (c[1] == route[i] || c[1] == route[i+1]) }
+          for i in (0..limit)
 
-          sum += distance_array[2]
+            sum += @nodes[route[i]].edges[route[i+1]]
+
+          end
+
+          sum
         end
 
-        sum
+        index = distances.find_index(distances.min)
+        return all_routes[index]
       end
-
-      index = distances.find_index(distances.min)
-      return all_routes[index]
     end
   end
 
+  class Node
 
+    attr_accessor :edges, :value
+    def initialize(value)
+      @value = value
+      @edges = {} # hash to map connected Nodes to the associated cost
+    end
 
+    def add_edge(node_value, cost)
+      @edges[node_value] = cost
+    end
+
+    def delete_edge(node_value)
+      @edges.delete(node_value)
+    end
+  end
 end
